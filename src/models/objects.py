@@ -6,6 +6,7 @@ from typing import Tuple
 from dataclasses import dataclass
 
 # Schema Class
+@dataclass
 class  Object:
     """A Class that represents an Object and its metadata"""
     tracker_id: int
