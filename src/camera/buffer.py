@@ -70,7 +70,7 @@ class RollingBuffer:
         fps = frame_count / time_taken if time_taken > 0 else fps
         
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-        writer = cv2.VideoWriter(filename=str(path), fourcc=fourcc, fps=fps, frameSize=(width, height))
+        writer = cv2.VideoWriter(filename=str(path), fourcc=fourcc, fps=fps, frameSize=(width, height), isColor=True)
         try:
             for _, frame in self.frames:
                 writer.write(frame)
