@@ -1,5 +1,4 @@
 # This Script is responsible for handling the capture of Video from the USB Camera
-# It also handles the Opening of a Saved Video File for Processing
 # It uses OpenCV from Google to handle the Video Capture and Processing
 # It uses a Context Manager to handle the Opening and Closing of the Video Capture Object gracefully
 # Importing Necessary Libraries
@@ -28,28 +27,6 @@ def capture_manager(cap: cv2.VideoCapture) -> Iterable[cv2.VideoCapture]:
         cap.release()
         print("Context Manager Released the Camera Capture")
         
-# A function for processing Sample Test Data Video's, Only used in Development for testing of pipeline, another function is used for edge inference
-def open_sample_video(path: Path) -> Iterable[Tuple[int, np.ndarray]]:
-    """
-    Function to open a sample video file for processing
-    Args:
-        path: Path: The path to the sample video file
-    Yields:
-        frame_n, frame: An iterator yielding frame numbers and frame data
-    """
-    cap = cv2.VideoCapture(str(path))
-    cap.set(cv2.CAP_PROP_FRAME_WIDTH, FRAME_WIDTH)
-    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, FRAME_HEIGHT)
-    
-    with capture_manager(cap=cap):
-        frame_n = 0
-        while True:
-            ret, frame = cap.read()
-            if not ret:
-                break
-            yield frame_n, frame
-            frame_n += 1
-
 # The Function that is actually used on Edge Inference and to process Frames as they come in.
 def open_camera(camera_id: int = 0) -> Iterable[Tuple[int, np.ndarray]]:
     """

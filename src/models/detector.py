@@ -4,7 +4,7 @@
 # Importing Necessary Libraries
 from ultralytics import YOLO
 import numpy as np
-from src.core.config import MODEL_NAME, IOU, CONFIDENCE, CLASSES, FORMAT, NMS, SIMPLIFY, OPTIMIZE, QUANTIZE, VERBOSE
+from src.core.config import MODEL_PATH, IOU, CONFIDENCE, CLASSES, FORMAT, NMS, SIMPLIFY, OPTIMIZE, QUANTIZE, VERBOSE
 from typing import List
 from src.models.objects import Object 
 from pathlib import Path
@@ -17,7 +17,7 @@ class Detector:
         model: The YOLOv8 Nano Model for Object Detection
     """
     
-    def __init__(self, model_name: str = MODEL_NAME) -> None:
+    def __init__(self, model_name: str = MODEL_PATH) -> None:
         """
         Initializes the Detector Class
         Args:
