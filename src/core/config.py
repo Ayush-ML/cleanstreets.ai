@@ -44,3 +44,16 @@ HAND_PRESENCE_CONFIDENCE = 0.5 # Defult Confidence
 HAND_TRACKING_CONFIDENCE = 0.5 # Defult Confidence
 PERSON_MATCH_MARGIN_RATIO = 0.12   # Expand person bbox by this much when testing hand containment
 WRIST_LANDMARK_IDX = 0  # MediaPipe's 21-point hand model, index 0 is the wrist
+#
+MIN_HOLD_FRAMES = 8 # Number of frames a person has to be holding an object before it is actually considored holding
+OVERLAP_THRESHOLD = 0.15 # Minimum IOU Score for Bounding box based Overlapping/Holding
+WRIST_PROXIMITY_RATIO = 0.6 #  Distance of the Wrist to the center of the Object Threshold
+EDGE_MARGIN_PERCENT = 0.08 # Exclude Drops that happen at this percent of the frames edge
+DOWNWARD_WIDNOW_FRAMES = 5 # No of frames in which Downward Motion is averaged
+DESCENT_THRESHOLD = 0.15 # Average of dy in a frame as a ratio of the objects height
+GROUND_LINE_RATIO = 0.80 # 80 percent of the frame counts as not ground, rest as ground
+STILLNESS_RADIUS_PERCENT = 0.03 # Percent Object should stay within of the frames width to count as stopped
+SETTLED_CONFIRMATION_FRAMES = 15 # Number of Frames the position of the Object must stop moving in order to register it as settled
+PERSON_EXIT_FRAMES = 30 # No of Frames person must be absent before triggering littering
+CLASS_VOTE_FRAMES = 15 # No of Frames of History used for voting
+STALE_HISTORY_FRAMES = 90 # Prune the Class history for objects that are unseen this many frames
