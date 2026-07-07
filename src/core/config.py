@@ -57,3 +57,7 @@ SETTLED_CONFIRMATION_FRAMES = 15 # Number of Frames the position of the Object m
 PERSON_EXIT_FRAMES = 30 # No of Frames person must be absent before triggering littering
 CLASS_VOTE_FRAMES = 15 # No of Frames of History used for voting
 STALE_HISTORY_FRAMES = 90 # Prune the Class history for objects that are unseen this many frames
+INCIDENT_DIR = "data/incidents" # Directory where All Incident Video's are Stored
+INCIDENTS_FILE = "data/incidents.json" # JSON File with Data about all Incidents
+DEAFULT_CAMERA = "cam1" # Camera to be used
+VALID_STATUS = ("approved", "rejected") # All Status for Incidents, pending means that it is yet to be reviewed
