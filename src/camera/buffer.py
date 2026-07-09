@@ -9,7 +9,6 @@ from collections import deque
 import time, cv2, numpy as np
 from pathlib import Path
 
-# The Buffer Class that handles everything
 class RollingBuffer:
     """
     A Class that handles the Rolling Buffer for the Camera Frames

@@ -9,7 +9,6 @@ from pathlib import Path
 import numpy as np
 from src.core.config import FRAME_WIDTH, FRAME_HEIGHT
 
-# Context Manager for Video Capture
 @contextmanager
 def capture_manager(cap: cv2.VideoCapture) -> Iterable[cv2.VideoCapture]:
     """
@@ -27,7 +26,6 @@ def capture_manager(cap: cv2.VideoCapture) -> Iterable[cv2.VideoCapture]:
         cap.release()
         print("Context Manager Released the Camera Capture")
         
-# The Function that is actually used on Edge Inference and to process Frames as they come in.
 def open_camera(camera_id: int = 0) -> Iterable[Tuple[int, np.ndarray]]:
     """
     Function to open a camera for processing

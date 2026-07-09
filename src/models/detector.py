@@ -9,7 +9,6 @@ from typing import List
 from src.models.objects import Object 
 from pathlib import Path
 
-# The Detector Class that handles everything
 class Detector:
     """
     A Class that handles the YOLOv8 Nano Detector Model for Object Detection
