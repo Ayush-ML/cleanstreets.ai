@@ -17,14 +17,14 @@ class IncidentStorage:
     The Following id the shape of one incident record:
         {
             "id": "inc_0001",                 
-            "timestamp": "2026-07-06T14:32:10+00:00", 
-            "camera_id": "cam1",
-            "person_id": 3,                    
-            "object_id": 7,                   
-            "class_name": "bottle",            
+            "time": "2026-07-06T14:32:10+00:00", 
+            "cam_id": "cam1",
+            "pid": 3,                    
+            "oid": 7,                   
+            "object": "bottle",            
             "confidence": 0.81,
-            "frame_number": 452,
-            "video_filename": "inc_0001.mp4",  
+            "frame_n": 452,
+            "video": "inc_0001.mp4",  
             "status": "pending",              
             "notes": ""                        
         }

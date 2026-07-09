@@ -77,3 +77,56 @@ class Pipeline:
         """
         with self._lock:
             return self._latest_frame, self._latest_count
+        
+    def run(self, should_stop: Optional[Callable[[], bool]]) -> None:
+        """
+        Runs the Full Detection, Tracking, Pose Estimation, Event Checking with the live camera
+        Args:
+            should_stop: An Optional Arguement passed by the Streamlit dashboard that is a function that returns true if pipeline should stop, else false
+        """
+        source: Iterator[Tuple[int, np.ndarray]] = open_camera()
+        
+        try:
+            for frame_n, frame in source:
+                if should_stop is not None and should_stop():
+                    break
+                
+                height, width = frame.shape[0], frame.shape[1]
+                
+                ts_s = frame_n / self.fps
+                ts_ms = int(ts_s * 1000)
+                
+                self.buffer.add_frame(frame=frame, timestamp=ts_s)
+                objects: List[Object] = self.detector.detect(frame=frame)
+                persons = {obj.tracker_id: obj for obj in objects if obj.is_person}
+                
+                with self._lock:
+                    self._latest_count = len(objects)
+                    self._latest_frame = frame
+                    
+                try:
+                    self.pose_estimator.submit(frame=frame, ts_ms=ts_ms)
+                except Exception as e:
+                    print(f"Got a Exception when detecting Poses, defaulting to None, {e}")
+                    pass
+                
+                self.history[ts_ms] = persons
+                self.delete_persons_history(ts_ms=ts_ms)
+                
+                try:
+                    wrists = self.pose_estimator.get_latest_wrists(person_history=self.history, height=height, width=width)
+                except Exception as e:
+                    print(f"Got an Exception while Getting Latest Pose Results, defaulting to None, {e}")
+                    wrists = {}
+                    
+                incident = self.event_detector.check(frame_n=frame_n, items=objects, person_wrists=wrists)
+                if incident is not None:
+                    record = self.incidents.save(incident=incident)
+                    path = Path(INCIDENT_DIR) / record['video']
+                    self.buffer.save_clip(path=path)
+                    self.buffer.clear()
+                    print(f"Incident Recorded, ID: {record['id']}, Object: {record['object']}, Confidence: {record['confidence']}")
+                    
+        finally:
+            source.close()
+            self.pose_estimator.close()
