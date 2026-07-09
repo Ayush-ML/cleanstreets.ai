@@ -4,10 +4,9 @@
 # Importing Necessary Libraries
 from contextlib import contextmanager
 import cv2
-from typing import Tuple, Iterable
-from pathlib import Path
-import numpy as np
+from typing import Iterable
 from src.core.config import FRAME_WIDTH, FRAME_HEIGHT
+from src.core.utils import Camera
 
 @contextmanager
 def capture_manager(cap: cv2.VideoCapture) -> Iterable[cv2.VideoCapture]:
@@ -26,7 +25,7 @@ def capture_manager(cap: cv2.VideoCapture) -> Iterable[cv2.VideoCapture]:
         cap.release()
         print("Context Manager Released the Camera Capture")
         
-def open_camera(camera_id: int = 0) -> Iterable[Tuple[int, np.ndarray]]:
+def open_camera(camera_id: int = 0) -> Iterable[Camera]:
     """
     Function to open a camera for processing
     Args:

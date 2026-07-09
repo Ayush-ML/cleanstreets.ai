@@ -45,7 +45,7 @@ class Detector:
         Args:
             frame: The Frame on which object detection is to be performed
         Returns:
-            List[dict]: A list of dictionaries containing the detected objects and their metadata
+            objects: A list of dictionaries containing the detected objects and their metadata
         """
         results = self.model.track(frame, persist=True, iou=IOU, conf=CONFIDENCE, verbose=VERBOSE, classes=CLASSES)
         objects: List[Object] = []

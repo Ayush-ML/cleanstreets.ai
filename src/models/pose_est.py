@@ -7,14 +7,13 @@ import mediapipe as mp
 from typing import Tuple, Dict, List, Optional
 import urllib.request
 import numpy as np
-from src.models.objects import Object
 from pathlib import Path
 import threading
 from mediapipe.tasks.python import vision as vision
 from mediapipe.tasks.python.core.base_options import BaseOptions
 from src.core.config import HAND_DETECTION_CONFIDENCE, HAND_MODEL_PATH, HAND_MODEL_URL, HAND_PRESENCE_CONFIDENCE, HAND_TRACKING_CONFIDENCE, PERSON_MATCH_MARGIN_RATIO, WRIST_LANDMARK_IDX, MAX_NUM_HANDS
+from src.core.utils import History, Point
 
-# the Class that Handles The Pose Estimation
 class PoseEstimator:
     """
     Loads MediaPipe's HandLandmarker once and extracts wrist points per
@@ -52,7 +51,7 @@ class PoseEstimator:
         """
         self.landmarker.close()
        
-    def _on_result(self, result: vision.HandLandmarkerResult, output_image: mp.Image, ts_ms: int) -> None:
+    def _on_result(self, result: vision.HandLandmarkerResult, ts_ms: int) -> None:
         """
         Calls on Internal Thread whenever a Frame finishes processing by Mediapipe, modelled as a Callback
         Args:
@@ -76,7 +75,7 @@ class PoseEstimator:
         self.landmarker.detect_async(image, ts_ms)
         
     @staticmethod
-    def _match_to_person(point: Tuple[float, float], people: Dict[int, Object], x: float, y: float) -> int | None:
+    def _match_to_person(point: Point, people: History, x: float, y: float) -> int | None:
         """
         Finds Which Persons Bounding Box continas the point that was passed in
         Args:
@@ -101,7 +100,7 @@ class PoseEstimator:
         candidates.sort(key=lambda x: x[0])
         return candidates[0][1]
     
-    def get_latest_wrists(self, person_history: Dict[int, Dict[int, Object]], width: float, height: float) -> Dict[int, List[Tuple[float, float]]]:
+    def get_latest_wrists(self, person_history: Dict[int, History], width: float, height: float) -> Dict[int, List[Point]]:
         """
         Returns The Tracker ID and Wrist Points of the Latest Result that has arrived from the Landmarker
         Args:
@@ -124,7 +123,7 @@ class PoseEstimator:
         
         return self._match_hands_to_people(result=result, people=persons_at_ts, width=width, height=height)
         
-    def _match_hands_to_people(self, result: vision.HandLandmarkerResult, people: Dict[int, Object], width: float, height: float) -> Dict[int, List[Tuple[float, float]]]:
+    def _match_hands_to_people(self, result: vision.HandLandmarkerResult, people: History, width: float, height: float) -> Dict[int, List[Point]]:
         """
         Matches The Landmarks of Hands to each person
         Args:
@@ -151,3 +150,4 @@ class PoseEstimator:
             
         return wrists_by_track
         
+# Ignore the Damn "Does not support Variable here" Warnings, lemme figure out their cause

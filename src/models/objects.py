@@ -1,11 +1,12 @@
 # This Script is Responsible for Creating a Schema for a class to Store an Object and Their metadata
 # This Metadata is extracted using the YOLOv8 Nano Model, which is a pre trained model for Object Detection and Classification.
 # It mainly classifies the Person and an Object the person is holding in thier hands
+# Important enough to not be kept in utils.py
 # Importing Necessary Libraries
 from typing import Tuple
 from dataclasses import dataclass
+from src.core.utils import Point
 
-# Schema Class
 @dataclass
 class  Object:
     """A Class that represents an Object and its metadata"""
@@ -19,9 +20,9 @@ class  Object:
     confidence: float
     
     @property
-    def center(self) -> Tuple[float, float]:
+    def center(self) -> Point:
         """Returns the center coordinates of the object"""
-        return ((self.x1 + self.x2) / 2, (self.y1 + self.y2) / 2)
+        return ((self.x1 + self.x2) / 2, (self.y1 + self.y2) / 2) # Hey, its the midpoint formula!
     
     @property
     def width(self) -> float:

@@ -5,15 +5,16 @@
 # Importing Necessary Libraries
 import threading, numpy as np
 from pathlib import Path
-from typing import Callable, Dict, Iterator, List, Optional, Tuple, Union
+from typing import Callable, Dict, Iterator, List, Optional, Tuple
 from src.camera.buffer import RollingBuffer
-from src.camera.capture import get_fps, open_camera
+from src.camera.capture import open_camera
 from src.core.config import FPS, INCIDENT_DIR, POSE_HISTORY_WINDOW_SECONDS
 from src.models.detector import Detector
 from src.models.events import EventChecker
 from src.core.incidents import IncidentStorage
 from src.models.objects import Object
 from src.models.pose_est import PoseEstimator
+from src.core.utils import History, Camera
 
 class Pipeline:
     """
@@ -35,7 +36,7 @@ class Pipeline:
         self.buffer = RollingBuffer()
         self.incidents = IncidentStorage()
         
-        self.history: Dict[int, Dict[int, Object]] = {}
+        self.history: Dict[int, History] = {}
         
         self._lock = threading.Lock()
         self._latest_frame: Optional[np.ndarray] = None
@@ -84,7 +85,7 @@ class Pipeline:
         Args:
             should_stop: An Optional Arguement passed by the Streamlit dashboard that is a function that returns true if pipeline should stop, else false
         """
-        source: Iterator[Tuple[int, np.ndarray]] = open_camera()
+        source: Iterator[Camera] = open_camera()
         
         try:
             for frame_n, frame in source:

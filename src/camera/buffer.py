@@ -4,10 +4,11 @@
 # It calculates a cutoff timestamp based on current time - time of the given frame, the removes frames starting from the last one, that are older than the cutoff timestamp, until it finds a frame that is within the time window. 
 # Importing Necessary Libraries
 from src.core.config import FPS, TIME_WINDOW
-from typing import Deque, Tuple
+from typing import Deque
 from collections import deque
 import time, cv2, numpy as np
 from pathlib import Path
+from src.core.utils import Camera
 
 class RollingBuffer:
     """
@@ -23,7 +24,7 @@ class RollingBuffer:
         Args:
             time_window: The Time Window in seconds for which frames are kept in the buffer (default is TIME_WINDOW)
         """
-        self.frames: Deque[Tuple[float, np.ndarray]] = deque()
+        self.frames: Deque[Camera] = deque()
         self.time_window = time_window
         
     def __len__(self) -> int:

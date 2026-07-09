@@ -7,9 +7,11 @@
 import json, os, threading
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, List, Optional, Any
+from typing import List, Optional
 from src.core.config import DEAFULT_CAMERA, INCIDENT_DIR, INCIDENTS_FILE, VALID_STATUS
-from src.models.events import Incident
+from src.core.utils import Incident
+from src.core.utils import IncidentDict
+
 class IncidentStorage:
     """
     Reads and Writes incident records to a Single JSON File on the Disk
@@ -41,7 +43,7 @@ class IncidentStorage:
         if not self.path.exists():
             pass
         
-    def _read_all(self) -> List[Dict[str, Any]]:
+    def _read_all(self) -> List[IncidentDict]:
         """
         Reads and Parses the Entire Incidents JSON File into a List of Dictionaries for easy use in further Functions
         Returns:
@@ -54,7 +56,7 @@ class IncidentStorage:
             print(f"Receieved Exception from reading Incidents JSON File, {e}")
             return []
         
-    def _write_all(self, records: List[Dict[str, Any]]) -> None:
+    def _write_all(self, records: List[IncidentDict]) -> None:
         """
         Writes the Full List of Records to the Incidents JSON File using an 'ATMOIC' Method
         This means that the Record is first written to a Temporary File beofre writing to the Main File
@@ -80,7 +82,7 @@ class IncidentStorage:
             latest = int(existing_ids[-1][len("inc_"):])
             return f"inc_{latest + 1:04d}"
         
-    def save(self, incident: Incident, camera_id: str = DEAFULT_CAMERA) -> Dict[str, Any]:
+    def save(self, incident: Incident, camera_id: str = DEAFULT_CAMERA) -> IncidentDict:
         """
         Saves a New Incident as a Permanent Record on the Incidents JSON File
         Uses The Format written in the Doctring of __init__
@@ -114,7 +116,7 @@ class IncidentStorage:
             
             return record
         
-    def list_all(self, status: Optional[str] = None) -> List[Dict[str, Any]]:
+    def list_all(self, status: Optional[str] = None) -> List[IncidentDict]:
         """
         Returns all The Records Sorted with the key as Timestamp in Reverse
         given a status, returns records only for that status
@@ -132,7 +134,7 @@ class IncidentStorage:
         records.sort(key=lambda x: x['timestamp'], reverse=True)
         return records
     
-    def fetch(self, id: str) -> Dict[str, Any] | None:
+    def fetch(self, id: str) -> IncidentDict | None:
         """
         Fetches a Single Incident Record based on Its ID
         Args:
