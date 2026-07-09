@@ -61,3 +61,4 @@ INCIDENT_DIR = "data/incidents" # Directory where All Incident Video's are Store
 INCIDENTS_FILE = "data/incidents.json" # JSON File with Data about all Incidents
 DEAFULT_CAMERA = "cam1" # Camera to be used
 VALID_STATUS = ("approved", "rejected") # All Status for Incidents, pending means that it is yet to be reviewed
+POSE_HISTORY_WINDOW_SECONDS = 2.0 # Number of Seconds to not throw out the previous frames positions of objects

@@ -4,15 +4,12 @@
 # The list_all function helps the Dashboard to get all pending Requests from the pipeline
 # There are also some other functions that are mentioned in the code below
 # Importing Necessary Libraries
-import json, os, threading, uuid
-from dataclasses import asdict
+import json, os, threading
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List, Optional, Any
 from src.core.config import DEAFULT_CAMERA, INCIDENT_DIR, INCIDENTS_FILE, VALID_STATUS
 from src.models.events import Incident
-from json import JSONDecodeError
-
 class IncidentStorage:
     """
     Reads and Writes incident records to a Single JSON File on the Disk
@@ -76,7 +73,7 @@ class IncidentStorage:
         Returns:
             next_id: The Filename as a String for the next Incident in the Directory
         """
-        existing_ids = sorted(p.steam for p in INCIDENT_DIR.glob("inc_*.*") if p.steam.startswith("inc_") and p.stem[len["inc_"]:].isdigit())
+        existing_ids = sorted(p.stem for p in INCIDENT_DIR.glob("inc_*.*") if p.stem.startswith("inc_") and p.stem[len["inc_"]:].isdigit())
         if not existing_ids:
             return "inc_0001"
         else:
@@ -178,4 +175,3 @@ class IncidentStorage:
                     return True
             else:
                 return False
-        

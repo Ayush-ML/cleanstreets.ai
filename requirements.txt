@@ -2,4 +2,5 @@ ultralytics
 opencv-python
 numpy
 streamlit
-mediapipehands
+mediapipe
+streamlit-autorefresh
