@@ -9,8 +9,8 @@ from src.core.config import CLASS_VOTE_FRAMES, DOWNWARD_WIDNOW_FRAMES, EDGE_MARG
 from collections import deque
 from dataclasses import dataclass, field
 import numpy as np
+from src.core.types import Point
 
-Point = Tuple[float, float]
 
 @dataclass
 class HoldRecord:

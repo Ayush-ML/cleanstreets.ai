@@ -6,7 +6,9 @@
 from typing import Dict, List, Optional, Set, Tuple
 from src.core.config import FRAME_HEIGHT, FRAME_WIDTH, MIN_HOLD_FRAMES, OVERLAP_THRESHOLD, WRIST_PROXIMITY_RATIO, DESCENT_THRESHOLD, GROUND_LINE_RATIO, SETTLED_CONFIRMATION_FRAMES, STILLNESS_RADIUS_PERCENT, STALE_HISTORY_FRAMES, PERSON_EXIT_FRAMES, CLASS_VOTE_FRAMES
 from src.models.objects import Object
-from src.core.utils import Point, HoldRecord, Incident, DropRecord, ClassHistory, _iou, _distance, _near_edge
+from src.core.utils import HoldRecord, Incident, DropRecord, ClassHistory, _iou, _distance, _near_edge
+from src.core.types import Point
+
 class EventChecker:
     """
     A State Based Video Stream Event Checker that checks whether the Littering event has actually occoured using rule based Logic

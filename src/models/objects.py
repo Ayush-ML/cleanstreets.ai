@@ -5,7 +5,7 @@
 # Importing Necessary Libraries
 from typing import Tuple
 from dataclasses import dataclass
-from src.core.utils import Point
+from src.core.types import Point
 
 @dataclass
 class  Object:

@@ -12,7 +12,8 @@ import threading
 from mediapipe.tasks.python import vision as vision
 from mediapipe.tasks.python.core.base_options import BaseOptions
 from src.core.config import HAND_DETECTION_CONFIDENCE, HAND_MODEL_PATH, HAND_MODEL_URL, HAND_PRESENCE_CONFIDENCE, HAND_TRACKING_CONFIDENCE, PERSON_MATCH_MARGIN_RATIO, WRIST_LANDMARK_IDX, MAX_NUM_HANDS
-from src.core.utils import History, Point
+from src.core.utils import History
+from src.core.types import Point
 
 class PoseEstimator:
     """

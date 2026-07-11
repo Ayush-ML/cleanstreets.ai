@@ -4,11 +4,13 @@
 # It keeps a Background Thread so that a refresh does not reload the entire system
 # Importing Necessary Libraries
 import threading, streamlit as st
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from typing import Optional
 from src.core.config import AUTOREFRESH_INTERVAL_MS, INCIDENT_DIR, REVIEW_TITLE
 from src.core.pipeline import Pipeline
 from src.core.incidents import IncidentStorage
-from pathlib import Path
 from streamlit_autorefresh import st_autorefresh
 
 def _init() -> None:
@@ -50,9 +52,16 @@ def _start() -> None:
         st.session_state.pipeline.reset()
         
     stop = threading.Event()
-    thread = threading.Thread(target=st.session_state.pipeline.run, kwargs={"should_stop": stop.is_set}, daemon=True)
+    def _construct_and_run() -> None:
+        if st.session_state.pipeline is None:
+            st.session_state.pipeline = Pipeline()
+        else:
+            st.session_state.pipeline.reset()
+        st.session_state.pipeline.run(should_stop=stop.is_set)
+
+    thread = threading.Thread(target=_construct_and_run, daemon=True)
     thread.start()
-    
+
     st.session_state.pipeline_thread = thread
     st.session_state.stop = stop
     
