@@ -9,7 +9,7 @@ FPS: int = 30 # The FPS of the Camera (Frames Per Second)
 TIME_WINDOW: float = 10.0 # The Time Window in seconds for which frames are kept in the buffer
 MODEL_PATH = "models/yolov8s.pt" # The Name of the Model to be used for Object Detection
 IOU = 0.5 # The IOU Threshold for Object Detection
-CONFIDENCE = 0.6 # The Confidence Threshold for Object Detection
+CONFIDENCE = 0.4 # The Confidence Threshold for Object Detection
 CLASSES =[
     0,  # person
     39,  # bottle

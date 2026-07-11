@@ -23,7 +23,7 @@ class Detector:
             model_name: The Name of the Model to be used for Object Detection (default is MODEL_NAME from core/config.py)
         """
         self.path = self._get_model_path(model_name=model_name)
-        self.model = YOLO(self.path)
+        self.model = YOLO(self.path, task="detect")
         
     @staticmethod
     def _get_model_path(model_name: str) -> str:

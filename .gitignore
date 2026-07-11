@@ -6,7 +6,6 @@ dist/
 build/
 *.egg
 .eggs/
-models/
 
 # Virtual environment
 venv/
@@ -29,8 +28,11 @@ data/incidents/*
 data/test_videos/*
 !data/test_videos/.gitkeep
 
-# Model weights (downloaded on first run)
-*.pt
-
 # Ultralytics exports
 runs/
+
+# Models
+models/
+
+# Data
+data/
