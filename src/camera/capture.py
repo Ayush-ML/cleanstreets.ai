@@ -34,7 +34,7 @@ def open_camera(camera_id: int = 0) -> Iterable[Camera]:
     cap = cv2.VideoCapture(camera_id)
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, FRAME_WIDTH)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, FRAME_HEIGHT)
-    
+    print("Camera Capture Started")
     with capture_manager(cap=cap):
         frame_n = 0
         while True:

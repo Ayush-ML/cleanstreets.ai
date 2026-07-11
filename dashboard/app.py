@@ -34,9 +34,8 @@ def _is_running() -> bool:
     Returns:
         running: A Boolean that is true if pipeline is running else false
     """
-    thread: Optional[threading.Thread] = st.session_state.pipeline_thread
-    running = thread.is_alive() if thread is not None else False
-    return running
+    thread = st.session_state.get("pipeline_thread")
+    return thread is not None and thread.is_alive()
 
 def _start() -> None:
     """
@@ -44,22 +43,24 @@ def _start() -> None:
     does nothing if the pipeline is already running
     """
     if _is_running():
-        return None
-    
+        return
+
     if st.session_state.pipeline is None:
         st.session_state.pipeline = Pipeline()
     else:
         st.session_state.pipeline.reset()
-        
-    stop = threading.Event()
-    def _construct_and_run() -> None:
-        if st.session_state.pipeline is None:
-            st.session_state.pipeline = Pipeline()
-        else:
-            st.session_state.pipeline.reset()
-        st.session_state.pipeline.run(should_stop=stop.is_set)
 
-    thread = threading.Thread(target=_construct_and_run, daemon=True)
+    pipeline = st.session_state.pipeline
+    stop = threading.Event()
+
+    def _construct_and_run(pipeline: Pipeline, stop: threading.Event):
+        pipeline.run(should_stop=stop.is_set)
+
+    thread = threading.Thread(
+        target=_construct_and_run,
+        args=(pipeline, stop),
+        daemon=True,
+    )
     thread.start()
 
     st.session_state.pipeline_thread = thread
@@ -93,7 +94,7 @@ def _render_monitor() -> None:
             st.rerun()
             
     if running:
-        frame, count = st.session_state.pipeline.get_latest_frame()
+        frame, count = st.session_state.pipeline.latest_frame()
         if frame is not None:
             st.image(frame[:, :, ::-1], use_container_width=True)
             st.caption(f"Tracked: {count}")

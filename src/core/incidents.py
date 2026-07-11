@@ -132,6 +132,7 @@ class IncidentStorage:
             records =  [r for r in records if r['status'] == status]
             
         records.sort(key=lambda x: x['time'], reverse=True)
+        print("Sorted all Records in the given filter")
         return records
     
     def fetch(self, id: str) -> IncidentDict | None:
@@ -174,6 +175,7 @@ class IncidentStorage:
                     if notes:
                         record['notes'] = notes
                     self._write_all(records=records)
+                    print("Updated Status of a Record")
                     return True
             else:
                 return False

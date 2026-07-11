@@ -34,10 +34,10 @@ class Detector:
         Returns:
             str: The path of the model
         """
-        path = Path(f"{model_name}_int8").with_suffix(f".{FORMAT}")
+        path = Path(f"{model_name}").with_suffix(f".{FORMAT}")
         if path.exists():
             return str(path)
-        return YOLO(model_name).export(format=FORMAT, simplify=SIMPLIFY, dynamic=True, nms=NMS, quantize=QUANTIZE)
+        return YOLO(model_name).export(format=FORMAT, simplify=SIMPLIFY, dynamic=True, nms=NMS)
         
     def detect(self, frame: np.ndarray) -> List[dict]:
         """

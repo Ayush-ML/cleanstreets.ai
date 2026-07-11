@@ -15,6 +15,7 @@ from src.core.incidents import IncidentStorage
 from src.models.objects import Object
 from src.models.pose_est import PoseEstimator
 from src.core.utils import History, Camera
+from dataclasses import asdict
 
 class Pipeline:
     """
@@ -99,7 +100,9 @@ class Pipeline:
                 
                 self.buffer.add_frame(frame=frame, timestamp=ts_s)
                 objects: List[Object] = self.detector.detect(frame=frame)
+                print(f"Objects in Frame: {objects}")
                 persons = {obj.tracker_id: obj for obj in objects if obj.is_person}
+                print(f"People in Frame: {persons}")
                 
                 with self._lock:
                     self._latest_count = len(objects)
@@ -116,6 +119,7 @@ class Pipeline:
                 
                 try:
                     wrists = self.pose_estimator.get_latest_wrists(person_history=self.history, height=height, width=width)
+                    print(f"Got All Wrists in the Frame: {wrists}")
                 except Exception as e:
                     print(f"Got an Exception while Getting Latest Pose Results, defaulting to None, {e}")
                     wrists = {}

@@ -48,6 +48,7 @@ class RollingBuffer:
         cutoff = timestamp - self.time_window
         while self.frames and self.frames[0][0] < cutoff:
             self.frames.popleft()
+        print(f"Added Frame for Timestamp: {timestamp}")
             
     def save_clip(self, path: Path, fps: int = FPS) -> None:
         """
@@ -85,3 +86,4 @@ class RollingBuffer:
         Clears the buffer by removing all frames
         """
         self.frames.clear()
+        print("Cleared Buffer")

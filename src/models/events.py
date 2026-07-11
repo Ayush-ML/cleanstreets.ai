@@ -82,6 +82,7 @@ class EventChecker:
             for oid, obj in objects.items():
                 pair = (pid, oid)
                 if self._is_holding(person=person, object=obj, wrists=wrists):
+                    print("Person is Holding an Object")
                     active_pairs.add(pair)
                     rec = self._holds.setdefault(pair, HoldRecord())
                     rec.frames += 1
