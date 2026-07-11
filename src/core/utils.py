@@ -44,7 +44,7 @@ class DropRecord:
     settled: Optional[int] = None
     settle_anchor: Optional[Tuple[float, float]] = None
     last_seen: int = 0
-
+@dataclass
 class ClassHistory:
     """
     A Rolling Window that consists of the Class ID, Class Name and The Confidence that the model is in its classification

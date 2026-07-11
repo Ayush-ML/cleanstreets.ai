@@ -8,7 +8,7 @@ import json, os, threading
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import List, Optional
-from src.core.config import DEAFULT_CAMERA, INCIDENT_DIR, INCIDENTS_FILE, VALID_STATUS
+from src.core.config import DEFAULT_CAMERA, INCIDENT_DIR, INCIDENTS_FILE, VALID_STATUS
 from src.core.utils import Incident
 from src.core.utils import IncidentDict
 
@@ -41,7 +41,7 @@ class IncidentStorage:
         self._lock = threading.Lock()
         self.path.parent.mkdir(parents=True, exist_ok=True)
         if not self.path.exists():
-            pass
+            self._write_all(records=[])
         
     def _read_all(self) -> List[IncidentDict]:
         """
@@ -75,14 +75,14 @@ class IncidentStorage:
         Returns:
             next_id: The Filename as a String for the next Incident in the Directory
         """
-        existing_ids = sorted(p.stem for p in INCIDENT_DIR.glob("inc_*.*") if p.stem.startswith("inc_") and p.stem[len["inc_"]:].isdigit())
+        existing_ids = sorted(p.stem for p in Path(INCIDENT_DIR).glob("inc_*.*") if p.stem.startswith("inc_") and p.stem[len("inc_"):].isdigit())
         if not existing_ids:
             return "inc_0001"
         else:
             latest = int(existing_ids[-1][len("inc_"):])
             return f"inc_{latest + 1:04d}"
         
-    def save(self, incident: Incident, camera_id: str = DEAFULT_CAMERA) -> IncidentDict:
+    def save(self, incident: Incident, camera_id: str = DEFAULT_CAMERA) -> IncidentDict:
         """
         Saves a New Incident as a Permanent Record on the Incidents JSON File
         Uses The Format written in the Doctring of __init__
@@ -131,7 +131,7 @@ class IncidentStorage:
         if status:
             records =  [r for r in records if r['status'] == status]
             
-        records.sort(key=lambda x: x['timestamp'], reverse=True)
+        records.sort(key=lambda x: x['time'], reverse=True)
         return records
     
     def fetch(self, id: str) -> IncidentDict | None:

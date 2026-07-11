@@ -4,7 +4,7 @@
 # Importing Necessary Libraries
 from ultralytics import YOLO
 import numpy as np
-from src.core.config import MODEL_PATH, IOU, CONFIDENCE, CLASSES, FORMAT, NMS, SIMPLIFY, OPTIMIZE, QUANTIZE, VERBOSE
+from src.core.config import MODEL_PATH, IOU, CONFIDENCE, CLASSES, FORMAT, NMS, SIMPLIFY, QUANTIZE, VERBOSE
 from typing import List
 from src.models.objects import Object 
 from pathlib import Path
@@ -37,7 +37,7 @@ class Detector:
         path = Path(model_name).with_suffix(f".{FORMAT}")
         if path.exists():
             return str(path)
-        return YOLO(model_name).export(format=FORMAT, simplify=SIMPLIFY, dynamic=True, optimize=OPTIMIZE, nms=NMS, quantize=QUANTIZE)
+        return YOLO(model_name).export(format=FORMAT, simplify=SIMPLIFY, dynamic=True, nms=NMS, quantize=QUANTIZE)
         
     def detect(self, frame: np.ndarray) -> List[dict]:
         """

@@ -3,7 +3,7 @@
 # It also reduces time in development to change the configurations in multiple places, and also reduces the chances of errors due to inconsistent configurations
 
 FRAME_WIDTH: int = 1280 # The Height of The Frame that a 480p camera will capture
-FRAME_HEIGHT: int = 780 # The Width of The Frame that a 480p camera will capture
+FRAME_HEIGHT: int = 720 # The Width of The Frame that a 480p camera will capture
 PROP_BUFFERSIZE: int = 1 # Get Latest Frame only from the Camera
 FPS: int = 30 # The FPS of the Camera (Frames Per Second)
 TIME_WINDOW: float = 10.0 # The Time Window in seconds for which frames are kept in the buffer
@@ -32,7 +32,6 @@ CLASSES =[
 ] 
 NMS = True # Whether to use Non-Maximum Suppression (NMS) or not
 SIMPLIFY = True # Whether to simplify the model or not
-OPTIMIZE = True # Whether to optimize the model or not
 QUANTIZE = 8 # The Quantization Level for the Model (INT8 Quantization)
 FORMAT = "onnx" # The Format in which the Model is to be exported
 VERBOSE = False # Whether to print the logs or not
@@ -44,7 +43,6 @@ HAND_PRESENCE_CONFIDENCE = 0.5 # Defult Confidence
 HAND_TRACKING_CONFIDENCE = 0.5 # Defult Confidence
 PERSON_MATCH_MARGIN_RATIO = 0.12   # Expand person bbox by this much when testing hand containment
 WRIST_LANDMARK_IDX = 0  # MediaPipe's 21-point hand model, index 0 is the wrist
-#
 MIN_HOLD_FRAMES = 8 # Number of frames a person has to be holding an object before it is actually considored holding
 OVERLAP_THRESHOLD = 0.15 # Minimum IOU Score for Bounding box based Overlapping/Holding
 WRIST_PROXIMITY_RATIO = 0.6 #  Distance of the Wrist to the center of the Object Threshold
@@ -59,7 +57,7 @@ CLASS_VOTE_FRAMES = 15 # No of Frames of History used for voting
 STALE_HISTORY_FRAMES = 90 # Prune the Class history for objects that are unseen this many frames
 INCIDENT_DIR = "data/incidents" # Directory where All Incident Video's are Stored
 INCIDENTS_FILE = "data/incidents.json" # JSON File with Data about all Incidents
-DEAFULT_CAMERA = "cam1" # Camera to be used
+DEFAULT_CAMERA = "cam1" # Camera to be used
 VALID_STATUS = ("approved", "rejected") # All Status for Incidents, pending means that it is yet to be reviewed
 POSE_HISTORY_WINDOW_SECONDS = 2.0 # Number of Seconds to not throw out the previous frames positions of objects
 AUTOREFRESH_INTERVAL_MS = 2000   # how often the dashboard auto-refreshes, in milliseconds

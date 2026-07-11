@@ -51,7 +51,7 @@ class PoseEstimator:
         """
         self.landmarker.close()
        
-    def _on_result(self, result: vision.HandLandmarkerResult, ts_ms: int) -> None:
+    def _on_result(self, result: vision.HandLandmarkerResult, output_image: mp.Image, ts_ms: int) -> None:
         """
         Calls on Internal Thread whenever a Frame finishes processing by Mediapipe, modelled as a Callback
         Args:

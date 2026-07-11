@@ -100,9 +100,8 @@ def _render_incident(record: dict) -> None:
     store: IncidentStorage = st.session_state.incident_storage
     
     with st.container(border=True):
-        st.markdown(f"**{record['id']}** — {record['class_name']} "f"({record['confidence']:.0%} confidence) — "f"status: `{record['status']}`")   
-         
-        st.caption(f"{record['timestamp']} · camera: {record['camera_id']}")
+        st.markdown(f"**{record['id']}** — {record['object']} ({record['confidence']:.0%} confidence) — status: `{record['status']}`")
+        st.caption(f"{record['time']} · camera: {record['cam_id']}")
         
         path = Path(INCIDENT_DIR) / record['video']
         if path.exists():
@@ -117,8 +116,9 @@ def _render_incident(record: dict) -> None:
                 store.update(id=record['id'], status="approved")
                 st.rerun()
         with col2:
-            if st.button("Reject", key=f"reject_{record["id"]}", use_container_width=True):
+            if st.button("Reject", key=f"reject_{record['id']}", use_container_width=True):
                 store.update(id=record["id"], status="rejected")
+                st.rerun()
                 
 def _render_review() -> None:
     """
@@ -127,7 +127,7 @@ def _render_review() -> None:
     st.subheader("Incident Review")
     store: IncidentStorage = st.session_state.incident_storage
     
-    status = st.radio("Filter by Status", options=["pending", "accepted", "rejected", "all"])
+    status = st.radio("Filter by Status", options=["pending", "approved", "rejected", "all"])
     filter = None if status == "all" else status
     records = store.list_all(status=filter)
     

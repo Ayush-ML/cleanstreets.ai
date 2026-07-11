@@ -19,8 +19,6 @@ def capture_manager(cap: cv2.VideoCapture) -> Iterable[cv2.VideoCapture]:
     """
     try:
         yield cap
-    except Exception as e:
-        print(f"Function: capture_manager, returned an error when yielding Video Capture Object: {e}")
     finally:
         cap.release()
         print("Context Manager Released the Camera Capture")
