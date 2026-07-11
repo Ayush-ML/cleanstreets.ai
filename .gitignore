@@ -21,13 +21,6 @@ venv/
 .DS_Store
 Thumbs.db
 
-# runtime data
-data/incidents/*
-!data/incidents/.gitkeep
-
-data/test_videos/*
-!data/test_videos/.gitkeep
-
 # Ultralytics exports
 runs/
 

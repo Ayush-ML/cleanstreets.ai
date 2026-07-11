@@ -71,4 +71,3 @@ class Detector:
         Resets the model to its initial state
         """
         self.model = YOLO(self.path)
-        
