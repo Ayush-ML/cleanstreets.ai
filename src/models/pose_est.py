@@ -151,4 +151,4 @@ class PoseEstimator:
             
         return wrists_by_track
         
-# Ignore the Damn "Does not support Variable here" Warnings, lemme figure out their cause
+# Figured out that the problem is completely harmless and unique to IDE Pylance, so now fix needed
