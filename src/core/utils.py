@@ -13,12 +13,14 @@ from src.core.types import Point
 
 
 @dataclass
-class HoldRecord:
+class HoldState:
     """
     The Record of How long a Person has 'held' an object for before it actually counts as being held
     """
     frames: int = 0
-
+    missed_count: int = 0
+    confirmed_count: int = 0
+    release_count: int = 0
 @dataclass
 class Incident:
     """
@@ -44,6 +46,7 @@ class DropRecord:
     settled: Optional[int] = None
     settle_anchor: Optional[Tuple[float, float]] = None
     last_seen: int = 0
+    missing_since: Optional[int] = None
 @dataclass
 class ClassHistory:
     """

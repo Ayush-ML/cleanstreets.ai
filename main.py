@@ -6,6 +6,8 @@ from src.camera.capture import open_camera
 from src.models.detector import Detector
 from src.models.pose_est import PoseEstimator
 from src.models.events import EventChecker
+from plyer import notification
+from datetime import datetime
 
 WRIST_COLOR = (0, 0, 255)       
 PERSON_COLOR = (0, 255, 0)      
@@ -54,7 +56,7 @@ def draw_wrists(frame, wrists_by_track) -> None:
 
 def main() -> None:
     """
-    The Piece that wires everything Together
+    The Piece that wires everything Together, Notifies if Incident has been triggered
     """
     detector = Detector()
     pose_estimator = PoseEstimator()
@@ -82,9 +84,7 @@ def main() -> None:
 
             incident = checker.check(frame_number, objects, wrists)
 
-            currently_held_object_ids = {
-                oid for held_set in checker._associations.values() for oid in held_set
-            }
+            currently_held_object_ids = {oid for held_set in checker._associations.values() for oid in held_set}
             in_progress_drops = len(checker._drops)
 
             for obj in objects:
@@ -99,10 +99,14 @@ def main() -> None:
                         cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
 
             if incident is not None:
-                cv2.putText(frame, "INCIDENT TRIGGERED", (10, 40),
-                            cv2.FONT_HERSHEY_SIMPLEX, 1.0, INCIDENT_COLOR, 3)
-                print(f"[INCIDENT] person={incident.pid} object={incident.obj_id} "
-                      f"class={incident.class_name} confidence={incident.confidence:.2f}")
+                cv2.putText(frame, "INCIDENT TRIGGERED", (10, 40),cv2.FONT_HERSHEY_SIMPLEX, 1.0, INCIDENT_COLOR, 3)
+                print(f"[INCIDENT] person={incident.pid} object={incident.obj_id} "f"class={incident.class_name} confidence={incident.confidence:.2f}")
+                notification.notify(
+                    title="Incident Triggered!",
+                    message=f"An Incident has been triggered, Confidence: {incident.confidence:.2f}, Timestamp: {datetime.now()}",
+                    app_name="CleanStreetsAI",
+                    timeout=10 
+                )
 
             cv2.imshow("CleanStreets AI — Diagnostic Preview", frame)
             if cv2.waitKey(1) & 0xFF == ord("q"):
