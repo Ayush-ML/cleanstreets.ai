@@ -116,7 +116,6 @@ class EventChecker:
                 del self._holds[pair]
 
         result: Optional[Incident] = None
-        ground = h * GROUND_LINE_RATIO
         settle_radius = w * STILLNESS_RADIUS_PERCENT
 
         for pair, drop in list(self._drops.items()):
@@ -144,11 +143,6 @@ class EventChecker:
                 descending = avg_dy > DESCENT_THRESHOLD
             else:
                 descending = False
-
-            if obj.bottom < ground:
-                drop.settled = None
-                drop.settle_anchor = None
-                continue
 
             if drop.settle_anchor is None:
                 if not descending:

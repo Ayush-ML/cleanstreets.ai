@@ -65,7 +65,7 @@ def main() -> None:
     frame_source = open_camera()
     person_history = {}
 
-    print("Diagnostic preview running. Press 'q' to quit.")
+    print("Running.... Press 'q' to quit.")
 
     try:
         for frame_number, frame in frame_source:
@@ -84,7 +84,7 @@ def main() -> None:
 
             incident = checker.check(frame_number, objects, wrists)
 
-            currently_held_object_ids = {oid for held_set in checker._associations.values() for oid in held_set}
+            currently_held_object_ids = {oid for (pid, oid), state in checker._holds.items() if state.held}
             in_progress_drops = len(checker._drops)
 
             for obj in objects:

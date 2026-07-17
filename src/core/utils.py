@@ -17,9 +17,9 @@ class HoldState:
     """
     The Record of How long a Person has 'held' an object for before it actually counts as being held
     """
-    frames: int = 0
+    held: int = 0
     missed_count: int = 0
-    confirmed_count: int = 0
+    confirm_count: int = 0
     release_count: int = 0
 @dataclass
 class Incident:
