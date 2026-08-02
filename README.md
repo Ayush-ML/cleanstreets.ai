@@ -1,8 +1,8 @@
 # CleanStreets AI
 
-**An edge-deployable, rule-based computer vision system for real-time littering detection and human-in-the-loop review.**
+**An edge-deployable, rule-based computer vision system for real-time littering detection.**
 
-CleanStreets AI watches a live camera feed, detects when a person picks up, holds, and abandons an object, and flags the sequence as a candidate littering incident — routing every flagged event to a human reviewer rather than making an autonomous enforcement decision. The system is built entirely on consumer-grade hardware (a standard laptop and its built-in webcam), using no paid APIs, no custom training data, and no cloud dependency of any kind.
+CleanStreets AI watches a live camera feed, detects when a person picks up, holds, and abandons an object, and flags the sequence as a candidate littering incident — displaying the full detection state live on-screen and raising a desktop notification the moment an incident is confirmed. The system is built entirely on consumer-grade hardware (a standard laptop and its built-in webcam), using no paid APIs, no custom training data, and no cloud dependency of any kind.
 
 ---
 
@@ -14,7 +14,7 @@ CleanStreets AI watches a live camera feed, detects when a person picks up, hold
 
 📹 **[Watch the full demo recording](data/Demo.mp4)**
 
-The recording shows the complete system running live end-to-end: object and person detection with tracking, hand-landmark-based holding detection, an object being set down and confirmed as a drop, an incident being saved automatically, and the Streamlit dashboard's live monitor and human review queue in action.
+The recording shows `main.py` running live: real-time bounding boxes around detected people and objects, wrist points overlaid whenever hand-landmark data is available, an object's box turning yellow and labeled `[HELD]` once it's confirmed as being held, a running status line (objects detected, wrists tracked, objects held, drops in progress), and — the moment a full littering sequence is confirmed — an on-screen "INCIDENT TRIGGERED" banner alongside a desktop toast notification reporting the detection confidence and timestamp.
 
 *(GitHub and most Git-based hosts render `.mp4` files with an inline player automatically when linked directly from a Markdown file in the repository. If viewing this file outside of such a host, open `data/Demo.mp4` directly in a media player.)*
 
@@ -31,9 +31,8 @@ The recording shows the complete system running live end-to-end: object and pers
 - [Tech Stack](#tech-stack)
 - [Setup & Installation](#setup--installation)
 - [Running the Application](#running-the-application)
-- [Using the Dashboard](#using-the-dashboard)
+- [What You'll See](#what-youll-see)
 - [Configuration Reference](#configuration-reference)
-- [Diagnostic & Development Tooling](#diagnostic--development-tooling)
 - [Troubleshooting](#troubleshooting)
 - [Known Limitations](#known-limitations)
 - [Related Work](#related-work)
@@ -45,22 +44,21 @@ The recording shows the complete system running live end-to-end: object and pers
 
 ## Motivation
 
-Littering enforcement today relies almost entirely on either physical patrols or continuous human monitoring of CCTV footage. Both approaches scale poorly: patrols cover a tiny fraction of any area at any given time, and manual footage review is labor-intensive precisely because the overwhelming majority of any camera feed contains no relevant activity at all. A human reviewer watching hours of empty footage for the rare few seconds that matter is an inefficient use of attention, and it does not scale as the number of monitored locations grows.
-
-CleanStreets AI explores a different model: an AI system that filters footage automatically, flagging only genuine candidate incidents for a human to review, rather than requiring a human to watch everything. The goal is not to remove the human from the loop, but to change what they spend their attention on — from "watch everything, hoping to catch something" to "review a short list of AI-flagged clips and make the final call."
+Littering enforcement today relies almost entirely on either physical patrols or continuous human monitoring of CCTV footage. Both approaches scale poorly: patrols cover a tiny fraction of any area at any given time, and manual footage review is labor-intensive precisely because the overwhelming majority of any camera feed contains no relevant activity at all. CleanStreets AI explores a different model: an AI system that watches continuously and only calls attention to a moment — via a live on-screen flag and a desktop notification — when a genuine candidate littering sequence has actually been detected.
 
 ## Problem Statement
 
-Although littering is prohibited in many jurisdictions, enforcement is difficult because continuous monitoring is labor-intensive, most surveillance footage contains no relevant events, and human operators cannot efficiently monitor many cameras simultaneously. The system proposed here automatically detects suspicious littering events and presents only those events to a human reviewer, reducing the volume of footage requiring manual attention without removing human judgment from the final decision.
+Although littering is prohibited in many jurisdictions, enforcement is difficult because continuous monitoring is labor-intensive, most surveillance footage contains no relevant events, and human operators cannot efficiently monitor many cameras simultaneously. The system proposed here automatically detects suspicious littering events in real time and surfaces them immediately, rather than requiring a human to watch continuously for something that occurs rarely.
 
 ## Design Philosophy
 
 Several deliberate constraints shaped every design decision in this project:
 
-- **No fully autonomous enforcement.** The system never issues fines, identifies individuals, or makes a final legal determination. It is explicitly a decision-support tool — a filter, not a judge.
+- **No fully autonomous enforcement.** The system never issues fines, identifies individuals, or makes a final legal determination. It surfaces a detected event; a human decides what to do about it.
 - **No custom training data required.** Rather than training a dedicated action-recognition model (which would require a labeled dataset of littering behavior that does not readily exist), the system uses a pretrained, general-purpose object detector combined with a hand-tracking model, and reasons about the *sequence* of events using hand-tuned, interpretable rules. This trades some theoretical accuracy ceiling for zero data-collection cost and full explainability — every decision the system makes can be traced back to a specific, human-readable rule.
 - **Runs on hardware you already own.** The entire system runs on a standard consumer laptop and its built-in webcam. No dedicated edge hardware, no cloud GPU, no paid inference API.
 - **Graceful degradation over hard failure.** Every optional signal in the pipeline (hand-landmark data, in particular) is designed to degrade gracefully to a simpler fallback rather than block the system entirely when it isn't available for a given frame.
+- **Transparent, visible reasoning.** The live view doesn't just show a final incident flag — it continuously displays the system's intermediate state (what's currently held, how many drop candidates are in progress) so its behavior is observable and debuggable in real time, not a black box.
 
 ---
 
@@ -71,11 +69,6 @@ Several deliberate constraints shaped every design decision in this project:
                      │   Live Camera (webcam)   │
                      └────────────┬────────────┘
                                   │  raw frames
-                                  ▼
-                     ┌─────────────────────────┐
-                     │   Rolling Frame Buffer    │  (context before the trigger)
-                     └────────────┬────────────┘
-                                  │
                                   ▼
         ┌─────────────────────────────────────────────────┐
         │         YOLO26 Detection + ByteTrack Tracking      │
@@ -93,18 +86,13 @@ Several deliberate constraints shaped every design decision in this project:
                                                   │  confirmed incident
                                                   ▼
                                      ┌───────────────────────┐
-                                     │  Incident Store (JSON)  │
-                                     │  + saved video clip     │
-                                     └───────────┬───────────┘
-                                                  ▼
-                                     ┌───────────────────────┐
-                                     │  Streamlit Dashboard    │
-                                     │  (live monitor + human  │
-                                     │   review queue)         │
+                                     │  Live Overlay (OpenCV)  │
+                                     │  + Desktop Notification │
+                                     │       (plyer)           │
                                      └───────────────────────┘
 ```
 
-The pipeline runs on a **background thread**, kicked off from the Streamlit dashboard's "Start Monitoring" control, so the live detection loop never blocks the dashboard's UI. The dashboard's main thread independently polls the shared, thread-safe `IncidentStore` on a timed auto-refresh, meaning live monitoring and human review both stay responsive simultaneously.
+`main.py` runs this entire loop directly in the foreground: each frame is captured, detected, tracked, checked against the event state machine, and rendered with a full diagnostic overlay in a single `cv2.imshow` window — with no background threading or separate review UI. When an incident is confirmed, the frame is annotated on-screen, the incident is printed to the console, and a desktop toast notification is raised via `plyer`.
 
 ---
 
@@ -114,11 +102,11 @@ The pipeline runs on a **background thread**, kicked off from the Streamlit dash
 
 Every frame is passed through a YOLO26 detector, restricted via a curated class filter to persons and a specific set of litter-relevant object categories (bottles, cups, bowls, food containers, and related items) rather than the full 80-class COCO vocabulary. The detector is exported to ONNX and INT8-quantized for faster CPU inference.
 
-Detection alone is not sufficient — the system needs to reason about the *same* person and the *same* object across many consecutive frames, not just isolated per-frame detections. Ultralytics' built-in `.track()` method (backed by ByteTrack) assigns a persistent tracker ID to every detected person and object, which every downstream stage relies on.
+Detection alone is not sufficient — the system needs to reason about the *same* person and the *same* object across many consecutive frames, not just isolated per-frame detections. Ultralytics' built-in `.track()` method (backed by ByteTrack) assigns a persistent tracker ID to every detected person and object, which every downstream stage relies on, and which `main.py` displays directly on-screen next to each bounding box.
 
 ### 2. Hand Landmark Detection
 
-Bounding-box overlap alone is a coarse signal for "is this person holding this object" — a person's torso box can easily overlap nearby litter they are simply walking past, without ever touching it. To get a tighter signal, the system runs Google's MediaPipe HandLandmarker in asynchronous `LIVE_STREAM` mode alongside the detector, extracting wrist keypoints for each detected hand and matching them to the correct tracked person by spatial containment.
+Bounding-box overlap alone is a coarse signal for "is this person holding this object" — a person's torso box can easily overlap nearby litter they are simply walking past, without ever touching it. To get a tighter signal, the system runs Google's MediaPipe HandLandmarker in asynchronous `LIVE_STREAM` mode alongside the detector, extracting wrist keypoints for each detected hand and matching them to the correct tracked person by spatial containment. `main.py` draws every detected wrist point directly on the live feed, making it possible to visually confirm whether hand-tracking data is actually arriving on any given frame.
 
 Because this result arrives asynchronously and is not guaranteed to be available on every single frame (a hand may be out of frame, occluded, or the result may simply not have arrived yet for the current timestamp), the system is explicitly designed so that **missing wrist data is a routine, expected condition — not an error.** Whenever wrist data isn't available for a given person on a given frame, the holding-detection logic falls back to bounding-box IoU automatically. This fallback is a structural part of the design, exercised on a meaningful fraction of frames in normal operation, not a rare edge case.
 
@@ -130,6 +118,8 @@ Holding is not decided from a single frame. Each (person, object) pair is tracke
 - **Leaving "held":** once confirmed as held, the pair must be confirmed as *not* touching for several consecutive frames before being treated as released — preventing a single noisy frame (a tracker jitter, a brief hand movement, momentary bounding-box misalignment) from ending a real hold prematurely.
 - **Occlusion tolerance:** if the object is not detected at all for a short run of frames while it is being held — the most common real-world case being a hand partially or fully covering the very object it is holding — the hold state is *paused*, not reset. Progress toward the hold or release thresholds is preserved across the gap, up to a configurable grace period, after which the state is finally discarded if the object still hasn't reappeared.
 
+Held objects are highlighted with a distinct on-screen color and an explicit `[HELD]` label in real time, directly reflecting this internal state.
+
 ### 4. Drop Confirmation
 
 Once a hold is confirmed released, the system opens a drop candidate for that (person, object) pair and tracks the object's motion over the following frames:
@@ -140,19 +130,16 @@ Once a hold is confirmed released, the system opens a drop candidate for that (p
 - **Person exit.** A drop is only finalized into a confirmed incident once the associated person has also been absent from the scene for a sustained period. This distinguishes an object someone has set down and abandoned from one they are still actively standing near and attending to.
 - **Occlusion tolerance during settling.** The same grace-period tolerance used during the hold phase applies here — if the settled object briefly leaves the frame or is occluded, the drop candidate is not immediately discarded, only after the gap exceeds the configured tolerance.
 
-### 5. Class Label Stabilization
+The live status line at the bottom of the feed continuously reports how many drop candidates are currently in progress, independent of whether any have yet been confirmed as a full incident.
 
-The object class reported in the final incident record is a **majority vote** across that object's recent detection history, not whichever single frame happened to trigger the incident. This reduces the chance that one unusually confident but incorrect frame-level classification ends up as the permanent label on a saved incident.
+### 5. Incident Confirmation & Notification
 
-### 6. Incident Persistence
+The moment the full sequence completes, `main.py`:
+- Draws a large **"INCIDENT TRIGGERED"** banner directly on the video frame.
+- Prints the incident's person ID, object ID, class name, and confidence to the console.
+- Raises a **desktop toast notification** (via `plyer`), reporting the detection confidence and timestamp, so the event is noticeable even if the video window isn't the active focus.
 
-Confirmed incidents are written to a thread-safe, file-backed `IncidentStore`. Writes are made atomic (written to a temporary file, then swapped into place) so that a crash or interruption mid-write can never leave the incident log in a corrupted, unreadable state. Each incident record includes an ID, timestamp, camera identifier, involved object class and confidence, the associated video clip filename, and a review status.
-
-The associated video clip is drawn from a **rolling buffer** that continuously retains a short window of recent frames — meaning a saved incident clip includes context from *before* the triggering moment, not just the instant it was confirmed.
-
-### 7. Human Review Dashboard
-
-A Streamlit dashboard serves as the sole entry point to the system. It provides a live camera preview and Start/Stop monitoring controls (running the detection pipeline on a background thread so the UI never freezes), alongside a reviewable incident queue — each entry showing its saved clip, metadata, and Approve/Reject controls. The dashboard auto-refreshes on a timer so both the live feed and the incident queue stay current without manual interaction.
+No incident is currently persisted to disk, saved as a clip, or queued for later review — `main.py` is a real-time observation and alerting tool, not a review/audit system.
 
 ---
 
@@ -164,23 +151,17 @@ cleanstreets.ai/
 │   ├── core/
 │   │   ├── config.py          # All tunable parameters, in one place
 │   │   ├── types.py           # Shared, dependency-free type aliases
-│   │   ├── utils.py           # Shared data structures & helper functions
-│   │   ├── incidents.py       # Thread-safe, atomic incident JSON store
-│   │   └── pipeline.py        # Orchestrates the full detection loop
+│   │   └── utils.py           # Shared data structures & helper functions
 │   ├── camera/
-│   │   ├── capture.py         # Live camera frame source
-│   │   └── buffer.py          # Wall-clock-windowed rolling clip buffer
+│   │   └── capture.py         # Live camera frame source
 │   └── models/
 │       ├── objects.py         # Tracked-object data schema
 │       ├── detector.py        # YOLO detection + tracking, ONNX export/cache
 │       ├── pose_est.py        # MediaPipe hand-landmark estimation
 │       └── events.py          # The rule-based event state machine
-├── dashboard/
-│   └── app.py                 # Streamlit application (sole entry point)
-├── demo.py                    # Standalone demo script
+├── main.py                    # Entry point — live detection loop, on-screen overlay, desktop alerts
 ├── models/                    # Cached model weights (downloaded on first run)
 ├── data/
-│   ├── incidents.json         # Saved incident records
 │   └── Demo.mp4                # Recorded demo walkthrough
 ├── requirements.txt
 └── setup.cfg
@@ -195,10 +176,8 @@ cleanstreets.ai/
 | Object detection & tracking | YOLO26 (Ultralytics) → ONNX, INT8 | Real-time person/object detection with persistent tracking |
 | Hand landmark detection | MediaPipe HandLandmarker | Wrist-proximity-based holding detection |
 | Event logic | Pure Python, rule-based state machine | Interpretable, zero-training-data decision logic |
-| Dashboard | Streamlit + streamlit-autorefresh | Live monitoring + human review UI |
-| Video I/O | OpenCV | Camera capture, clip encoding |
-| Incident storage | Flat-file JSON, atomic writes, thread lock | Shared contract between pipeline and dashboard |
-| Concurrency | Python `threading` | Background pipeline execution, non-blocking UI |
+| Live display | OpenCV (`cv2.imshow`) | Real-time bounding-box, wrist-point, and status overlay |
+| Desktop alerts | `plyer` | Cross-platform toast notification on incident confirmation |
 
 ---
 
@@ -236,23 +215,22 @@ pip install -r requirements.txt
 
 ## Running the Application
 
-**Full application (dashboard):**
 ```bash
-streamlit run dashboard/app.py
+python main.py
 ```
-This opens the dashboard at `http://localhost:8501`. Click **Start Monitoring** to begin the live detection loop.
 
-**Standalone demo:**
-```bash
-python demo.py
-```
+A window titled **"CleanStreets AI — Diagnostic Preview"** opens, showing the live camera feed with the full detection overlay. Press **`q`** with the window focused to quit.
 
 ---
 
-## Using the Dashboard
+## What You'll See
 
-- **Live Monitor** — shows connection status, a Start/Stop control, and the raw live camera feed once monitoring is active.
-- **Incident Review** — a filterable list (Pending / Approved / Rejected / All) of every incident the system has flagged. Each entry displays its saved video clip, detected object class and confidence, timestamp, and camera ID, alongside Approve and Reject controls.
+- **Green boxes** — detected people, labeled with tracker ID, class name, and confidence.
+- **Orange boxes** — detected litter-relevant objects, not currently held.
+- **Yellow boxes, labeled `[HELD]`** — objects the event state machine currently considers genuinely held by a tracked person.
+- **Red dots** — individual detected wrist points, labeled by the tracker ID of the person they were matched to.
+- **Status line** (bottom of frame) — live counts of objects detected, wrists currently tracked, objects currently held, and drop candidates currently in progress.
+- **"INCIDENT TRIGGERED" banner** — appears the instant a full littering sequence is confirmed, alongside a console log line and a desktop notification.
 
 ---
 
@@ -278,28 +256,13 @@ All tunable parameters live in `src/core/config.py`. A selection of the most sig
 | `PERSON_EXIT_FRAMES` | Consecutive frames the associated person must be absent before an incident is finalized |
 | `CLASS_VOTE_FRAMES` | Size of the rolling window used for majority-vote class-label stabilization |
 | `STALE_HISTORY_FRAMES` | How long an object's class history is retained after it's last seen, before being pruned |
-| `VALID_STATUS` | The set of valid incident review statuses (`approved`, `rejected`) |
-| `AUTOREFRESH_INTERVAL_MS` | How often the dashboard automatically refreshes |
-| `INCIDENT_DIR` | Directory where incident clips and the JSON record file are stored |
-
----
-
-## Diagnostic & Development Tooling
-
-Several standalone scripts were used during development to isolate and verify individual pieces of the pipeline outside of the full dashboard:
-
-- **A live detection + hand-tracking preview** — overlays real-time bounding boxes, track IDs, and detected wrist points directly on the camera feed, to visually confirm detection and pose quality independent of the dashboard's polling-based display.
-- **A drop-sequence diagnostic** — overlays the event state machine's live internal state (near-edge status, descent rate, settle countdown) directly on the video feed, to identify exactly which condition a given drop candidate is waiting on.
-- **A fully synthetic, scripted trigger test** — feeds hand-constructed detections directly into the event checker, following a deterministic hold → separate → fall → settle → person-exits sequence, to verify the state machine's core logic in isolation from camera and model quality entirely.
-
-These tools were essential for isolating whether an observed issue originated from detection quality, tracking continuity, or the event logic itself, rather than guessing.
 
 ---
 
 ## Troubleshooting
 
 **`ModuleNotFoundError: No module named 'src'`**
-Occurs when running a script from a subdirectory rather than the project root. Either run commands from the project root, or add the project root to `sys.path` explicitly at the top of the script.
+Occurs when running a script from a subdirectory rather than the project root. Run `python main.py` from the project root itself.
 
 **`ImportError: cannot import name 'X' from partially initialized module` (circular import)**
 Occurs if two modules import from each other. Shared, dependency-free types should live in their own leaf module (`types.py`) that both sides import from, rather than importing from each other directly.
@@ -310,14 +273,15 @@ Ultralytics appends a suffix (e.g. `_int8`) to exported filenames when quantizat
 **`running scripts is disabled on this system` (PowerShell)**
 A default PowerShell security restriction unrelated to the project itself — see the Setup section above for the fix.
 
-**Console spam: `Expecting value: line 1 column 1 (char 0)`**
-Indicates the incident JSON file exists but is empty rather than containing a valid empty list. Seed it with `[]` and ensure the store's initialization logic writes a valid empty file on first run.
+**No desktop notification appears**
+Confirm `plyer` is installed and that your OS's notification permissions allow Python/the terminal to raise toast notifications — this is an OS-level setting independent of the application code.
 
 ---
 
 ## Known Limitations
 
 - **Stock, non-fine-tuned detector.** The system uses general-purpose, COCO-pretrained YOLO weights rather than a detector fine-tuned specifically on litter imagery. Detection accuracy on ambiguous, small, or heavily occluded objects is correspondingly limited. Fine-tuning on a litter-specific dataset (e.g., TACO) was investigated as a natural next step but was scoped out of this prototype in favor of validating the full pipeline first.
+- **No persistence.** Incidents are surfaced live (on-screen banner, console log, desktop notification) but are not currently saved to disk, recorded as clips, or queued for later human review.
 - **Single camera, single line of sight.** An object fully occluded from the only available camera angle cannot be tracked, regardless of software-level tolerance for brief occlusion.
 - **Geometric, not learned, decision logic.** Holding and dropping are determined by tuned geometric thresholds rather than a model trained on labeled real-world footage. This is interpretable and requires no training data, but has a lower theoretical accuracy ceiling than a properly trained classifier would.
 - **fps-dependent timing thresholds.** Several thresholds are expressed as consecutive-frame counts rather than real time durations, meaning their real-world meaning shifts if the actual achieved processing rate drifts from what they were tuned against.
@@ -335,6 +299,7 @@ More broadly, AI-based litter and illegal-dumping detection is an active area bo
 
 ## Future Work
 
+- **Incident persistence and review** — saving confirmed incidents as clips with structured metadata, and building a review interface, rather than only surfacing them live.
 - **Fine-tuning the detector** on a litter-specific dataset (TACO, and similar public litter-detection datasets) to improve accuracy on ambiguous or small objects beyond what stock COCO weights provide.
 - **Migrating fixed frame-count thresholds to real time durations**, deriving the actual frame counts from measured achieved fps at runtime, so timing behavior remains consistent regardless of processing-rate fluctuations.
 - **Re-hold cancellation**, so an object picked back up before an incident is finalized cancels the drop candidate immediately rather than relying solely on the person-exit timer.
@@ -351,4 +316,4 @@ The system was developed and demonstrated entirely on a standard consumer laptop
 
 ## License
 
-MIT
+Apache 2.0
